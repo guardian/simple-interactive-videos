@@ -9,6 +9,7 @@ import (
 	"github.com/aws/smithy-go/rand"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -70,6 +71,15 @@ func GenerateNumericId() int32 {
 	}
 	intval, _ := binary.Uvarint(content[0:8])
 	return int32(intval) + 9900000
+}
+
+/*
+GenerateStringIdPathSafe generates a randomised character string that is safe to use in a filepath
+*/
+func GenerateStringIdPathSafe() string {
+	baseId := GenerateStringId()
+	fixer := regexp.MustCompile("[^\\w\\d]")
+	return fixer.ReplaceAllString(baseId, "")
 }
 
 func GenerateStringId() string {
