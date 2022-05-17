@@ -34,7 +34,7 @@ func getPresetInfo(cli *elastictranscoder.Client, presetId string) *elastictrans
 	return out
 }
 
-func makeOutputFilename(originalFilename *string, transcode *TranscodeSet) string {
+func appendToBasefile(originalFilename *string, stuff string) string {
 	xtractor := regexp.MustCompile("(.*)\\.([^.]*)")
 
 	fileBase := path.Base(*originalFilename)
@@ -45,8 +45,15 @@ func makeOutputFilename(originalFilename *string, transcode *TranscodeSet) strin
 	} else {
 		fileStem = fileBase
 	}
+	return fileStem + stuff
+}
 
-	return fmt.Sprintf("%s%s%s", fileStem, transcode.Suffix, transcode.Extension)
+func makeOutputFilename(originalFilename *string, transcode *TranscodeSet) string {
+	return appendToBasefile(originalFilename, transcode.Suffix+transcode.Extension)
+}
+
+func makeOutputThumbsPattern(originalFilename *string, transcode *TranscodeSet) string {
+	return appendToBasefile(originalFilename, fmt.Sprintf("_{count}%s", transcode.Suffix))
 }
 
 func WriteOutputs(awsConfig aws.Config, tableName string, content []*common.Encoding) {
@@ -73,6 +80,7 @@ func main() {
 	titleId := flag.Int64("titleId", 0, "title ID value to use")
 	uriBase := flag.String("uribase", "", "base URL on the CDN where content is accessible")
 	tableName := flag.String("table", "", "name of the table that contains encodings")
+	noDbOut := flag.Bool("nodb", false, "set this to only run the transcode and not push to encodings endpoint")
 	flag.Parse()
 
 	transcodes, err := LoadTranscodeSet(transcodeSet)
@@ -87,10 +95,12 @@ func main() {
 	outputList := make([]types.CreateJobOutput, len(*transcodes))
 	for i, transcode := range *transcodes {
 		outputList[i] = types.CreateJobOutput{
-			Key:      aws.String(makeOutputFilename(inputFile, &transcode)),
-			PresetId: aws.String(transcode.PresetId),
+			Key:              aws.String(makeOutputFilename(inputFile, &transcode)),
+			PresetId:         aws.String(transcode.PresetId),
+			ThumbnailPattern: aws.String(makeOutputThumbsPattern(inputFile, &transcode)),
 		}
 	}
+
 	params := &elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(*pipelineId),
 		Input: &types.JobInput{
@@ -147,7 +157,9 @@ func main() {
 			enc[i] = common.JobOutputToEncoding(&out, presetInfo.Preset, int32(*contentId), int32(*titleId), fcsId, *uriBase)
 			spew.Dump(enc[i])
 		}
-		WriteOutputs(awscfg, *tableName, enc)
+		if !*noDbOut {
+			WriteOutputs(awscfg, *tableName, enc)
+		}
 	default:
 		log.Fatalf("Got an unexpected job status: '%s'", *jobStatus.Job.Status)
 	}
