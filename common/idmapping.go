@@ -38,7 +38,7 @@ func (r *IdMappingRecord) ToDynamoRecord() map[string]types.AttributeValue {
 
 	return map[string]types.AttributeValue{
 		"uuid":       uuidVal,
-		"contentId":  &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", r.ContentId)},
+		"contentid":  &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", r.ContentId)},
 		"filebase":   &types.AttributeValueMemberS{Value: r.Filebase},
 		"project":    maybeProjectAttr,
 		"lastupdate": &types.AttributeValueMemberS{Value: r.Lastupdate.Format(time.RFC3339)},

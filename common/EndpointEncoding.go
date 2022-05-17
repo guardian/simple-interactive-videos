@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
+	ddbtypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/elastictranscoder/types"
 	"github.com/aws/smithy-go/rand"
 	"log"
@@ -36,8 +37,31 @@ type Encoding struct {
 	Aspect      string    `json:"aspect"`       //NOT NULL
 }
 
+func (e *Encoding) ToDynamoDB() map[string]ddbtypes.AttributeValue {
+	return map[string]ddbtypes.AttributeValue{
+		"encodingid":   &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.EncodingId)},
+		"contentid":    &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.ContentId)},
+		"url":          &ddbtypes.AttributeValueMemberS{Value: e.Url},
+		"format":       &ddbtypes.AttributeValueMemberS{Value: e.Format},
+		"mobile":       &ddbtypes.AttributeValueMemberBOOL{Value: e.Mobile},
+		"multirate":    &ddbtypes.AttributeValueMemberBOOL{Value: e.Multirate},
+		"vcodec":       &ddbtypes.AttributeValueMemberS{Value: e.VCodec},
+		"acodec":       &ddbtypes.AttributeValueMemberS{Value: e.ACodec},
+		"vbitrate":     &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.VBitrate)},
+		"abitrate":     &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.ABitrate)},
+		"lastupdate":   &ddbtypes.AttributeValueMemberS{Value: e.LastUpdate.Format(time.RFC3339)},
+		"frame_width":  &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.FrameWidth)},
+		"frame_height": &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.FrameHeight)},
+		"duration":     &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%f", e.Duration)},
+		"file_size":    &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.FileSize)},
+		"fcs_id":       &ddbtypes.AttributeValueMemberS{Value: e.FCSID},
+		"octopus_id":   &ddbtypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", e.OctopusId)},
+		"aspect":       &ddbtypes.AttributeValueMemberS{Value: e.Aspect},
+	}
+}
+
 /*
-generateNumericId generates a (theoretically) unique numeric ID
+GenerateNumericId generates a (theoretically) unique numeric ID
 */
 func GenerateNumericId() int32 {
 	content, err := GenerateUuidBytes()
@@ -76,7 +100,7 @@ func GenerateUuidString() (string, error) {
 	return u.GetUUID()
 }
 
-func JobOutputToEncoding(o *types.JobOutput, presetInfo *types.Preset, contentId int32, titleId int32, urlBase string) *Encoding {
+func JobOutputToEncoding(o *types.JobOutput, presetInfo *types.Preset, contentId int32, titleId int32, fcsId string, urlBase string) *Encoding {
 	encodingUrl := fmt.Sprintf("%s/%s", urlBase, *o.Key)
 
 	//log.Printf("Output file %s has format %s, vcodec %s, acodec %s, vbitrate %s, abitrate %s",
@@ -133,7 +157,7 @@ func JobOutputToEncoding(o *types.JobOutput, presetInfo *types.Preset, contentId
 		FrameHeight: *o.Height,
 		Duration:    float32(*o.Duration),
 		FileSize:    *o.FileSize,
-		FCSID:       GenerateStringId(),
+		FCSID:       fcsId,
 		OctopusId:   titleId,
 		Aspect:      maybeAspectRatio,
 	}
