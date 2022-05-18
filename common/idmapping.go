@@ -8,11 +8,29 @@ import (
 )
 
 type IdMappingRecord struct {
+	UUID       string
 	ContentId  int32
 	Filebase   string //base index
 	Project    *string
 	Lastupdate time.Time //range key for all indices
 	Octopus_id *int64    //indexed
+}
+
+func NewIdMappingRecord() *IdMappingRecord {
+	uidStr, err := GenerateUuidString()
+	if err != nil {
+		log.Fatal("Could not generate uuid: ", err)
+	}
+
+	return &IdMappingRecord{UUID: uidStr}
+}
+
+func (r *IdMappingRecord) RegenerateUUID() {
+	uidStr, err := GenerateUuidString()
+	if err != nil {
+		log.Fatal("Could not generate uuid: ", err)
+	}
+	r.UUID = uidStr
 }
 
 func (r *IdMappingRecord) ToDynamoRecord() map[string]types.AttributeValue {
@@ -29,15 +47,8 @@ func (r *IdMappingRecord) ToDynamoRecord() map[string]types.AttributeValue {
 		maybeOctId = &types.AttributeValueMemberNULL{Value: true}
 	}
 
-	uidStr, err := GenerateUuidString()
-	if err != nil {
-		log.Fatal("Could not generate uuid: ", err)
-	}
-
-	uuidVal := &types.AttributeValueMemberS{Value: uidStr}
-
 	return map[string]types.AttributeValue{
-		"uuid":       uuidVal,
+		"uuid":       &types.AttributeValueMemberS{Value: r.UUID},
 		"contentid":  &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", r.ContentId)},
 		"filebase":   &types.AttributeValueMemberS{Value: r.Filebase},
 		"project":    maybeProjectAttr,

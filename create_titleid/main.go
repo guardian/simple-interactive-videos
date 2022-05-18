@@ -6,9 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/guardian/simple-interactive-deliverables/common"
 	"log"
-	"time"
+	"os"
 )
 
 func main() {
@@ -32,31 +31,33 @@ func main() {
 		maybeOctId = octid
 	}
 
-	newRecord := &common.IdMappingRecord{
-		ContentId:  common.GenerateNumericId(),
-		Filebase:   *filebase,
-		Project:    maybeProject,
-		Lastupdate: time.Now(),
-		Octopus_id: maybeOctId,
-	}
-
-	log.Print("Creating new title record: ")
-	spew.Dump(*newRecord)
-
 	awsConfig, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		log.Fatal("Could not connect to AWS: ", err)
 	}
 	ddbClient := dynamodb.NewFromConfig(awsConfig)
 
-	params := dynamodb.PutItemInput{
-		Item:      newRecord.ToDynamoRecord(),
-		TableName: tableName,
-	}
-	_, err = ddbClient.PutItem(context.Background(), &params)
-	if err == nil {
-		log.Print("Title created")
+	existingRecordsCount, knownIdList, err := CheckForExistingName(ddbClient, tableName, filebase)
+	if existingRecordsCount > 1 {
+		log.Printf("WARNING: There are %d content IDs for the name '%s'. This will lead to problems and should be fixed.", existingRecordsCount, *filebase)
+		for i, id := range knownIdList {
+			log.Printf("ContentID %d: %s", i+1, id)
+		}
+		os.Exit(1)
+	} else if existingRecordsCount > 0 {
+		log.Printf("There is already a title for '%s' with this content ID: %s", *filebase, knownIdList[0])
+		os.Exit(0)
 	} else {
-		log.Fatal("Could not create title: ", err)
+		newRecord, err := GenerateNewRecord(ddbClient, tableName, filebase, maybeProject, maybeOctId, 0)
+		if newRecord != nil {
+			log.Print("Created new title record: ")
+			spew.Dump(*newRecord)
+		}
+
+		if err == nil {
+			log.Print("Title created")
+		} else {
+			log.Fatal("Could not create title: ", err)
+		}
 	}
 }
