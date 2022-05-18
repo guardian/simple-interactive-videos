@@ -11,3 +11,5 @@ prod:
 	GOOS=darwin GOARCH=arm64 go build -o ../build/create_titleid.mac_arm
 	GOOS=windows GOARCH=amd64 go build -o ../build/create_titleid.exe
 
+test:
+	go test

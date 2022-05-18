@@ -11,3 +11,5 @@ prod:
 	GOOS=darwin GOARCH=arm64 go build -o ../build/transcodelauncher.mac_arm
 	GOOS=windows GOARCH=amd64 go build -o ../build/transcodelauncher.exe
 
+test:
+	go test
