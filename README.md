@@ -142,7 +142,7 @@ via: 1.1 f735f4a6973fb5ea131811587853dcf6.cloudfront.net (CloudFront)
 x-amz-cf-pop: LHR61-C2
 x-amz-cf-id: xP4wlSY4pTmU_EdFCQJ6r8eF8eAcxIOwesc9bmXybQkdT1TZeVxCJA==
 
-https://cdn.theguardian.tv/100daysofwar_test/kyiv_tv_tower_4m.mp4
+https://cdn.theguardian.tv/interactivevids/your_title_name_4m.mp4
 ```
 
 Or:
@@ -170,5 +170,5 @@ via: 1.1 7cbc7be2814e4b470b205933b90a9fb0.cloudfront.net (CloudFront)
 x-amz-cf-pop: LHR61-C2
 x-amz-cf-id: kQOefH2rzrDXd_0ANyjceBtO3gp7t52-VLzZ1DRAIgXJ2hgAtKlrQg==
 
-https://cdn.theguardian.tv/100daysofwar_test/kyiv_tv_tower_4m_poster.png
+https://cdn.theguardian.tv/interactivevids/your_title_name_4m_poster.png
 ```
