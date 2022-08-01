@@ -8,6 +8,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"log"
 	"os"
+	"github.com/guardian/simple-interactive-deliverables/common"
 )
 
 func main() {
@@ -37,7 +38,12 @@ func main() {
 	}
 	ddbClient := dynamodb.NewFromConfig(awsConfig)
 
+	var contentId int32
+	contentId = common.GenerateNumericId()
+
 	existingRecordsCount, knownIdList, err := CheckForExistingName(ddbClient, tableName, filebase)
+	existingRecordsCountId, knownIdListId, errId := CheckForExistingContentId(ddbClient, tableName, contentId)
+	log.Printf("DEBUG: Existing id: %s Error: %s", knownIdListId, errId)
 	if existingRecordsCount > 1 {
 		log.Printf("WARNING: There are %d content IDs for the name '%s'. This will lead to problems and should be fixed.", existingRecordsCount, *filebase)
 		for i, id := range knownIdList {
@@ -47,8 +53,11 @@ func main() {
 	} else if existingRecordsCount > 0 {
 		log.Printf("There is already a title for '%s' with this content ID: %s", *filebase, knownIdList[0])
 		os.Exit(0)
+	} else if existingRecordsCountId > 0 {
+		log.Printf("There is already a record using content id.: %d", contentId)
+		os.Exit(0)
 	} else {
-		newRecord, err := GenerateNewRecord(ddbClient, tableName, filebase, maybeProject, maybeOctId, 0)
+		newRecord, err := GenerateNewRecord(ddbClient, tableName, filebase, maybeProject, maybeOctId, 0, contentId)
 		if newRecord != nil {
 			log.Print("Created new title record: ")
 			spew.Dump(*newRecord)

@@ -58,7 +58,7 @@ func CheckForExistingName(ddbClient *dynamodb.Client, tableName *string, filebas
 CheckForExistingContentId returns the number of matching records for the given ContentId value.  Only if this
 function returns zero should you continue to create a record
 */
-func CheckForExistingContentId(ddbClient *dynamodb.Client, tableName *string, contentId int64) (int32, []string, error) {
+func CheckForExistingContentId(ddbClient *dynamodb.Client, tableName *string, contentId int32) (int32, []string, error) {
 	expr, err := expression.NewBuilder().
 		WithKeyCondition(expression.Key("contentid").Equal(expression.Value(contentId))).
 		Build()
@@ -73,13 +73,13 @@ func CheckForExistingContentId(ddbClient *dynamodb.Client, tableName *string, co
 GenerateNewRecord will create a new entry in the given id mapping table. The ContentId field is randomly generated, and this
 function will automatically retry if the given ID already exists until one is found that does not.
 */
-func GenerateNewRecord(ddbClient *dynamodb.Client, tableName *string, filebase *string, maybeProject *string, maybeOctId *int64, attempt int) (*common.IdMappingRecord, error) {
+func GenerateNewRecord(ddbClient *dynamodb.Client, tableName *string, filebase *string, maybeProject *string, maybeOctId *int64, attempt int, contentId int32) (*common.IdMappingRecord, error) {
 	if attempt > 100 {
 		return nil, errors.New("could not create an ID after 100 attempts, giving up")
 	}
 
 	newRecord := &common.IdMappingRecord{
-		ContentId:  common.GenerateNumericId(),
+		ContentId:  contentId,
 		Filebase:   *filebase,
 		Project:    maybeProject,
 		Lastupdate: time.Now(),
@@ -108,7 +108,7 @@ func GenerateNewRecord(ddbClient *dynamodb.Client, tableName *string, filebase *
 		if errors.As(err, &ae) {
 			if ae.ErrorCode() == "ConditionalCheckFailedException" {
 				log.Printf("DEBUG Detected ID conflict on generated number %d, re-trying", newRecord.ContentId)
-				return GenerateNewRecord(ddbClient, tableName, filebase, maybeProject, maybeOctId, attempt+1)
+				return GenerateNewRecord(ddbClient, tableName, filebase, maybeProject, maybeOctId, attempt+1, contentId)
 			} else {
 				return nil, err
 			}
