@@ -71,8 +71,8 @@ You specifically need read/write permissions on the following services:
 
 The first step is to create a "title", which all your transcodes will be linked to.  This is done by `create_titleid` as follows
 
-```bash 
-create_titleid -tableName {idmapping-table} -filebase {your-titlename} 
+```bash
+./create_titleid.mac_x86 -table {idmapping-table} -filebase {your-titlename}
 ```
 
 You need to get the correct value for `{idmapping-table}` from the actual endpoints deployment.
@@ -80,6 +80,18 @@ Consult the "resources" page of the endpoints' deployed Cloudformation and look 
 in the name.
 
 This will output a record, including a randomly generated "contentID". Save this, you'll need it for the next steps.
+
+You may need to run the programme as the root user.
+
+Janus credentials do not work running as root by default. You will need to edit the file ~/.aws/credentials
+The quickest way to fix this is to replace [multimedia] with [default] and save the file.
+
+Before running the create_titleid command and the later transcodelauncher you may need to set the AWS region. You should
+be able to do this by running this:
+
+```
+export AWS_REGION=eu-west-1
+```
 
 ## Step two - upload your media
 
@@ -95,22 +107,22 @@ aws s3 cp mymedia.mp4 s3://input-bucket-name
 These steps are automated by `transcodelauncher`. Run it as follows:
 
 ```bash
-transcodelauncher -inputFile mymedia.mp4 -pipelineId {pipeline-id} -transcodeset transcodes.yaml -contentId {content-id} \
-  -tableName {encodings-table} -cdnPath {cdn-bucket}:path/on/cdn -uriBase https://your-cdn-host/path/on/cdn [-noDbOut]
+./transcodelauncher.mac_x86 -input mymedia.mp4 -pipeline {pipeline-id} -transcodeset transcodes.yaml -contentId {content-id} \
+  -table {encodings-table} -cdnbucket {cdn-bucket}:path/on/cdn -uribase https://your-cdn-host/path/on/cdn [-noDbOut]
 ```
 
 You need to specify quite a few parameters here:
-- inputFile - this is the path to the _source media_ that you want to use, _on the "input" bucket_.
-- pipelineId - this is the randomised number/letter ID of the Elastic Transcoder pipeline you set up at the start
+- input - this is the path to the _source media_ that you want to use, _on the "input" bucket_.
+- pipeline - this is the randomised number/letter ID of the Elastic Transcoder pipeline you set up at the start
 - transcodeset - this is the yaml file that you created at the start, with your preset IDs in it
 - contentId - this is the numeric value you got from `create_titleid`
-- tableName - this is the name of the "Encodings" table from the actual endpoints deployment. Consult the "resources"
+- table - this is the name of the "Encodings" table from the actual endpoints deployment. Consult the "resources"
 page of the endpoints' deployed Cloudformation and look for a DynamoDB table that has "encodings" in the name.
-- cdnPath - optional. If specifed, the transcoded media files will all be copied from the output bucket to this S3 location.
+- cdnbucket - optional. If specifed, the transcoded media files will all be copied from the output bucket to this S3 location.
 Specify it in the form `bucketname:path/for/encodings`, so e.g. mymedia_1m.mp4 would go to the path `path/for/encodings/mymedia_1m.mp4` on
-the bucket `bucketname`.
-- uriBase - This is the location on the CDN where the content will be accessed. It's used to generate the https urls for
-the endpoint.  You should set this up to be the correct https public-facing path to `cdnPath`.
+the bucket `bucketname`. You must use a sub folder.
+- uribase - This is the location on the CDN where the content will be accessed. It's used to generate the https urls for
+the endpoint.  You should set this up to be the correct https public-facing path to `cdnbucket`.
 - noDbOut - optional, for testing. If set, then the program won't attempt to output any encodings to the database.
 
 ## Step four - test
