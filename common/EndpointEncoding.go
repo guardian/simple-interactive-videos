@@ -65,12 +65,11 @@ func (e *Encoding) ToDynamoDB() map[string]ddbtypes.AttributeValue {
 GenerateNumericId generates a (theoretically) unique numeric ID
 */
 func GenerateNumericId() int32 {
-	content, err := GenerateUuidBytes()
+	randId, err := rand.CryptoRandInt63n(99999)
 	if err != nil {
-		log.Fatal("Could not get uuid bytes: ", err)
+		log.Fatal("Could not generate random number")
 	}
-	intval, _ := binary.Uvarint(content[0:8])
-	return int32(intval) + 9900000
+	return int32(randId) + 9900000
 }
 
 /*
