@@ -10,8 +10,6 @@ import (
 func main() {
 	numericIdList := make([]int32, 100)
 	for i := 0; i < 100; i++ {
-		//println(common.GenerateStringId())
-		//fmt.Printf("%d\n", common.GenerateNumericId())
 		numericIdList[i] = common.GenerateNumericId()
 	}
 
