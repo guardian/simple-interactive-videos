@@ -1,23 +1,14 @@
-# Simple interactive videos wrapper script
+# Simple interactive videos POC
 
-This script uploads a local .mp4 file to s3. It then runs `./create_titleid` and uses the generated ContentId to run `./transcodelauncher`
+This POC triggers an automated process when a video is upload to the interavtives s3 input bucket.
 
-## Prerequisites
-- `./create_titleid.mac_x86` and `./transcodelauncher.mac_x86` must be executable and in the same directory as this script.
-- You must be in a root shell. Run `sudo bash`
-- AWS credentials need to be exported and you need authorization to access to resources.
+The `s3-trigger-lambda.py` lambda function creates an SQS message with the file name and metadata for the video orientation and users email.
 
-## To use
-- Edit these lines so that the script points to the correct resources.
-```AWS_S3_BUCKET=""
-MAPPING_TABLE=""
-ENCODING_TABLE=""
-CDN_BUCKET=""
-PIPELINE_ID=""
-URI_BASE=""
-```
+This message is picked up by an ec2 instance running the `sqs-poll.bash` script which runs the `create_titleid` and `transcodelauncher` binaries.
 
-- Check if the mp4 was shot in landscape or portrait. Use `-l` for landscape or `-p` for portrait.
-- Run `./siv-make.bash <-l or -p> your-file.mp4 project-name`
+## TODO:
+
+- Send the user an email containing urls to the transcoded files.
+
 
 
