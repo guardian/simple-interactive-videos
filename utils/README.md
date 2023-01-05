@@ -24,6 +24,7 @@ $ aws s3 cp my-test-file.mp4 s3://my-input-bucket --metadata '{"email":"test@exa
 
 ## TODO:
 
+- Use either `horizontal_transcode_set.yaml` or `vertical_transcode_set.yaml` depending on the value in SQS metadata.
 - Send the user an email containing urls to the transcoded files.
 
 
