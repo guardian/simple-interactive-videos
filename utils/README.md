@@ -18,7 +18,7 @@ URI_BASE=""
 
 The video file can be uploaded with optional metadata from the command line like this:
 ```
-$ aws s3 cp my-test-file.mp4 s3://    my-input-bucket --metadata '{"email":"test@example.com", "orientation":"p"}'
+$ aws s3 cp my-test-file.mp4 s3://my-input-bucket --metadata '{"email":"test@example.com", "orientation":"p"}'
 ```
 
 
