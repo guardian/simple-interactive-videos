@@ -13,7 +13,7 @@ On the releases page, you should find compiled binaries of all the tools.
 There are versions for Mac, Windows and Linux; Mac and Linux are both compiled for ARM and x86_64.
 
 Current binaries are:
- 
+
 - create_titleid - creates new titles
 - transcodelauncher - runs transcodes, deploys media to CDN and writes to the database
 
@@ -86,7 +86,7 @@ You may need to run the programme as the root user.
 Janus credentials do not work running as root by default. You will need to edit the file ~/.aws/credentials
 The quickest way to fix this is to replace [multimedia] with [default] and save the file.
 
-Before running the create_titleid command and the later transcodelauncher you may need to set the AWS region. You should
+Before running the create_titleid command and the later transcodelauncher command you may need to set the AWS region. You should
 be able to do this by running this:
 
 ```
@@ -136,7 +136,7 @@ curl -D- 'https://multimedia.guardianapis.com/interactivevideos/reference.php?fi
 And you should get back something looking like this:
 
 ```
-HTTP/2 200 
+HTTP/2 200
 content-type: text/plain;charset=UTF-8
 content-length: 65
 date: Wed, 18 May 2022 14:13:38 GMT
@@ -164,7 +164,7 @@ curl -D- 'https://multimedia.guardianapis.com/interactivevideos/reference.php?fi
 ```
 
 ```
-HTTP/2 200 
+HTTP/2 200
 content-type: text/plain;charset=UTF-8
 content-length: 72
 date: Wed, 18 May 2022 14:14:37 GMT
